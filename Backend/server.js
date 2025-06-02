@@ -1,11 +1,16 @@
 import express from 'express';
 import env from 'dotenv';
-const app = express();
 import connectDb from './utils/connectDb.js';
+import authRouter from './routes/auth.routes.js';
+import cookieParser from 'cookie-parser';
 
+
+const app = express();
 env.config();
-
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use("/api/auth", authRouter);
 
 app.get("/", (req, res) =>{
     res.send("Hello World");
