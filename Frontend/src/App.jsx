@@ -1,8 +1,15 @@
 import React from 'react'
+import { Route, Router } from 'react-router'
+import signup from './pages/signup'
+import signin from './pages/signin'
 
 const App = () => {
   return (
-    <div>App</div>
+    <Router>
+      <Route />
+      <Route path="/signup" component= {signup} />
+      <Route path='/signin' component={ signin} />
+    </Router>
   )
 }
 
