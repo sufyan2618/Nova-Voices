@@ -1,12 +1,13 @@
 import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs';
 import generateToken from "../utils/token.js";
+import { json } from "express";
 
 export const Signup = async (req, res) => {
     try{
-        const {username, email, password} = req.body;
+        const {name, email, password} = req.body;
 
-        if(!username || !email || !password) {
+        if(!name || !email || !password) {
             return res.status(400).json({message: 'All fields are required'});
         }
         const existingUser = await User.findOne({email});
@@ -18,10 +19,10 @@ export const Signup = async (req, res) => {
         }
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = new User({username, email, password: hashedPassword});
+        const user = new User({name, email, password: hashedPassword});
         await user.save();
-
-        res.cookie('token', generateToken(user._id), {
+        const token =  generateToken(user._id)
+        res.cookie('token', token, {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             httpOnly: true,
             secure: false,
@@ -49,13 +50,18 @@ export const Login = async (req, res) => {
         if(!isValidPassword){
             return res.status(400).json({message: 'Invalid Credentials'});
         }
-        res.cookie('token', generateToken(user._id), {
+        const token = generateToken(user._id)
+        res.cookie('token', token, {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly: true,
             secure: false,
             sameSite: 'Strict',
             });
-            res.status(200).json({message: 'Logged in successfully'});
+            res.status(200).json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                });
 
         
     } catch (error) {
@@ -72,5 +78,15 @@ export const Logout = async (req, res) => {
     } catch (error) {
         console.error('Logout error:', error);
         res.status(500).json({message: `error logging out: ${error.message}`});
+    }
+}
+
+export const Check_Auth = async (req, res) => {
+    try {
+        res.status(200).json(req.user);
+
+    } catch (error) {
+        console.error('Check_Auth error:', error);
+        res.status(500).json("Internal Server Error")
     }
 }
