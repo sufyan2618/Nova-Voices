@@ -1,7 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs';
 import generateToken from "../utils/token.js";
-import { json } from "express";
+import cloudinary from "../utils/cloudinary.js";
 
 export const Signup = async (req, res) => {
     try{
@@ -88,5 +88,32 @@ export const Check_Auth = async (req, res) => {
     } catch (error) {
         console.error('Check_Auth error:', error);
         res.status(500).json("Internal Server Error")
+    }
+}
+
+export const Update_Assistant = async(req, res) =>{
+    try {
+        const {imageUrl, assistantName} = req.body
+        let assistantImage;
+        if(req.file){
+            const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+            const result = await cloudinary.uploader.upload(base64Image ,{
+                folder: "assistant_images",
+            });
+            assistantImage = result.secure_url;
+        } else{
+            assistantImage = imageUrl
+        }
+
+        const user = await User.findByIdAndUpdate(req.user._id,{
+            assistantName: assistantName,
+            assistantImage: assistantImage
+        }, { new: true} ).select("-password")
+        res.status(200).json(user);
+
+    } catch (error) {
+        console.error('Update_Assistant error:', error);
+        res.status(500).json({message: `error updating assistant: ${error.message}`});
+        
     }
 }

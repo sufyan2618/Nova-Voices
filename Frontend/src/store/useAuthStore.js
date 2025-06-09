@@ -5,8 +5,10 @@ import toast from 'react-hot-toast'
 
 const useAuthStore = create((set, get) => ({
     authUser: null,
+    isCheckingAuth: true,
     isLoggingIn: false,
     isSigningUp: false,
+    isUpdatingProfile: false,
 
     checkAuth: async () => {
         try {
@@ -15,6 +17,9 @@ const useAuthStore = create((set, get) => ({
         } catch (error) {
             console.error(error)
             set({authUser: null})
+        }
+        finally{
+            set({isCheckingAuth: false})
         }
 
     },
@@ -47,6 +52,32 @@ const useAuthStore = create((set, get) => ({
         }
         finally {
             set({ isLoggingIn: false })
+        }
+    },
+    logout : async () => {
+        try {
+            const response = await axiosInstance.post("/auth/logout")
+            set({authUser: null})
+            return response.data
+        } catch (error) {
+            console.log(error)
+        }
+    },
+    updateAssistant: async (data) =>{
+        set({isUpdatingProfile: true})
+        try {
+            const response = await axiosInstance.post("/auth/update-assistant", data)
+            set({authUser: response.data})
+            toast.success("Profile Updated Successfully");
+            console.log(response.data)
+            return response.data
+        } catch (error) {
+            console.log(error)
+            toast.error(error.response?.data?.message || "Error Updating Profile")
+            throw error;
+        }
+        finally{
+            set({isUpdatingProfile: false})
         }
     }
 }))
