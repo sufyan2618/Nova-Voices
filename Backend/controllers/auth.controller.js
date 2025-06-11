@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs';
 import generateToken from "../utils/token.js";
 import cloudinary from "../utils/cloudinary.js";
+import geminiResponse from "../gemini.js";
 
 export const Signup = async (req, res) => {
     try{
@@ -114,6 +115,71 @@ export const Update_Assistant = async(req, res) =>{
     } catch (error) {
         console.error('Update_Assistant error:', error);
         res.status(500).json({message: `error updating assistant: ${error.message}`});
+        
+    }
+}
+
+export const askAssistant = async (req, res) => {
+    try {
+        const {command} = req.body;
+        const user = await User.findById(req.user._id);
+        const userName = user.name
+        const assistantName = user.assistantName;
+        const result = await geminiResponse(command, assistantName, userName);
+        const jsomMatch = result.match(/{[/s/S]*}/);
+        if(!jsomMatch){
+            return res.status(400).json({message: "Sorry I can't understand , please try again."});
+        }
+        const geminiResult = JSON.parse(jsomMatch[0]);
+        const type = geminiResult.type;
+
+        switch(type){
+            case 'get-date':
+                return res.json({
+                    type,
+                    userInput: geminiResult.userinput,
+                    result: new Date().toLocaleDateString()
+                });
+            case 'get-time':
+                return res.json({
+                    type,
+                    userInput: geminiResult.userinput,
+                    result: new Date().toLocaleTimeString()
+                });
+            case 'get-day':
+                return res.json({
+                    type,
+                    userInput: geminiResult.userinput,
+                    result: new Date().toLocaleDateString('en-US', { weekday: 'long' })
+                });
+            case 'get-month':
+                return res.json({
+                    type,
+                    userInput: geminiResult.userinput,
+                    result: new Date().toLocaleDateString('en-US', { month: 'long' })
+                })
+            case 'general':
+            case 'google-search':
+            case 'youtube-search':
+            case 'youtube-play':
+            case 'calculator-open':
+            case 'instagram-open':
+            case 'facebook-open':
+            case 'weather-show':
+                return res.json({
+                    type,
+                    userInput: geminiResult.userinput,
+                    result: geminiResult.response
+                });
+            default:
+                return res.status(400).json({message: "Sorry I can't understand, please try again."});
+            
+        }
+    
+        
+    } catch (error) {
+        console.error('askAssistant error:', error);
+        res.status(500).json({message: `error asking assistant: ${error.message}`});
         
     }
 }

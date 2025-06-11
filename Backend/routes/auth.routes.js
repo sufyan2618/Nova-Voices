@@ -1,5 +1,5 @@
 import express from 'express';
-import { Signup, Login, Logout, Check_Auth, Update_Assistant } from '../controllers/auth.controller.js';
+import { Signup, Login, Logout, Check_Auth, Update_Assistant, askAssistant } from '../controllers/auth.controller.js';
 import auth from '../middlewares/auth.middleware.js';
 import multer from 'multer';
 const storage = multer.memoryStorage();
@@ -12,5 +12,6 @@ authRouter.post('/login',  Login);
 authRouter.get('/logout', auth, Logout);
 authRouter.get('/check-auth', auth, Check_Auth)
 authRouter.post('/update-assistant', auth ,upload.single('file'), Update_Assistant)
+authRouter.post('/askassistan' , auth, askAssistant)
 
 export default authRouter;
