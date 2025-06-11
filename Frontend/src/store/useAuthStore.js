@@ -79,6 +79,17 @@ const useAuthStore = create((set, get) => ({
         finally{
             set({isUpdatingProfile: false})
         }
+    },
+
+    askAssistant: async (data) => {
+        try {
+            const response = await axiosInstance.post("/auth/askassistant", data)
+            return response.data
+        } catch (error) {
+            console.log(error)
+            toast.error(error.response?.data?.message || "Error Asking Assistant")
+            throw error;
+        }
     }
 }))
 

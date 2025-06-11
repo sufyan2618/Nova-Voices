@@ -12,6 +12,6 @@ authRouter.post('/login',  Login);
 authRouter.get('/logout', auth, Logout);
 authRouter.get('/check-auth', auth, Check_Auth)
 authRouter.post('/update-assistant', auth ,upload.single('file'), Update_Assistant)
-authRouter.post('/askassistan' , auth, askAssistant)
+authRouter.post('/askassistant' , auth, askAssistant)
 
 export default authRouter;
