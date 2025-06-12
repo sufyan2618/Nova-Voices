@@ -1,6 +1,6 @@
 import { React, useEffect, useState } from 'react'
 import { Route, Routes, Navigate } from 'react-router'
-import Signup from './pages/Signup'
+import Signup from './pages/signup'
 import Signin from './pages/Signin'
 import AssistantSelect from './pages/AssistantSelect'
 import UpdateName from './pages/UpdateName'

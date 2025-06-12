@@ -21,8 +21,12 @@ const userSchema = new mongoose.Schema({
     assistantImage: {
         type: String,
         default: ''
-
-    }
+    },
+    history: [
+        {
+            type : String,
+        }
+    ]
 },
 {
     timestamps: true

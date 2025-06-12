@@ -58,9 +58,11 @@ const useAuthStore = create((set, get) => ({
         try {
             const response = await axiosInstance.post("/auth/logout")
             set({authUser: null})
+            toast.success("Logged out Successfully");
             return response.data
         } catch (error) {
             console.log(error)
+            toast.error(error.response?.data?.message || "Error Logging Out")
         }
     },
     updateAssistant: async (data) =>{

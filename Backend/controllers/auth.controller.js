@@ -124,6 +124,8 @@ export const askAssistant = async (req, res) => {
         const { command } = req.body;
         console.log(command);
         const user = await User.findById(req.user._id);
+        user.history.push(command);
+        await user.save();
         const userName = user.name
         const assistantName = user.assistantName;
         const result = await geminiResponse(command, assistantName, userName);
@@ -137,6 +139,7 @@ export const askAssistant = async (req, res) => {
         }
         const geminiResult = JSON.parse(jsonMatch[0]);
         const type = geminiResult.type;
+        const directPlay = geminiResult.directPlay || false;
 
         switch (type) {
             case 'get_date':
@@ -163,14 +166,20 @@ export const askAssistant = async (req, res) => {
                     userInput: geminiResult.userinput,
                     result: new Date().toLocaleDateString('en-US', { month: 'long' })
                 })
+            case 'youtube_play':
+                return res.json({
+                    type,
+                    userInput: geminiResult.userinput,
+                    result: geminiResult.response,
+                    directPlay
+                });
             case 'general':
-            case 'google-search':
-            case 'youtube-search':
-            case 'youtube-play':
-            case 'calculator-open':
-            case 'instagram-open':
-            case 'facebook-open':
-            case 'weather-show':
+            case 'google_search':
+            case 'youtube_search':
+            case 'calculator_open':
+            case 'instagram_open':
+            case 'facebook_open':
+            case 'weather_show':
                 return res.json({
                     type,
                     userInput: geminiResult.userinput,
