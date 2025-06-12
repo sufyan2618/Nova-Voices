@@ -48,60 +48,69 @@ const AssistantSelect = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#312e81] px-4">
-      <h1 className="text-3xl md:text-4xl font-bold text-white mb-8 tracking-wide">
-        Select your <span className="text-blue-400">Assistant Image</span>
-      </h1>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mb-10 w-full max-w-4xl">
-        {assistantImages.map((img, idx) => (
-          <AssistantCard
-            key={idx}
-            image={img}
-            selected={selected === idx}
-            onClick={() => {
-              setSelected(idx);
-              setIsCustom(false);
-            }}
-          />
-        ))}
-        <div
-          onClick={() => fileInputRef.current.click()}
-          className="flex items-center justify-center rounded-xl border-2 border-dashed border-gray-500 bg-gray-800 cursor-pointer hover:border-blue-400 transition-all"
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f2027] via-[#2c5364] to-[#232526] px-4 py-8">
+      <div className="backdrop-blur-lg bg-[#232526]/80 border border-[#2c5364]/50 shadow-2xl rounded-2xl p-8 md:p-12 w-full max-w-5xl transition-all duration-300">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 drop-shadow-lg tracking-wide">
+          Choose Your <span className="text-blue-400">Assistant</span>
+        </h1>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mb-12 w-full">
+          {assistantImages.map((img, idx) => (
+            <AssistantCard
+              key={idx}
+              image={img}
+              selected={selected === idx}
+              onClick={() => {
+                setSelected(idx);
+                setIsCustom(false);
+              }}
+              className={`transition-all duration-200 ${
+                selected === idx
+                  ? "ring-4 ring-blue-400 scale-105 shadow-xl"
+                  : "hover:ring-2 hover:ring-blue-300"
+              }`}
+            />
+          ))}
+          {/* Custom Upload Card */}
+          <div
+            onClick={() => fileInputRef.current.click()}
+            className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-500 bg-[#1a1a2e]/80 cursor-pointer hover:border-blue-400 transition-all min-h-[96px] min-w-[96px]"
+          >
+            <span className="text-4xl text-gray-400 mb-2">+</span>
+            <span className="text-xs text-gray-400">Upload</span>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              className="hidden"
+            />
+          </div>
+        </div>
+
+        {/* Show selected image */}
+        {(selected !== null || customImage) && (
+          <div className="flex flex-col items-center mb-8">
+            <span className="text-gray-200 mb-2 text-lg">Selected:</span>
+            <img
+              src={isCustom ? customImage : assistantImages[selected]}
+              alt="Selected Assistant"
+              className="w-32 h-32 rounded-full border-4 border-blue-400 shadow-lg object-cover"
+            />
+          </div>
+        )}
+
+        <button
+          className={`w-full md:w-auto px-10 py-3 flex items-center justify-center rounded-full text-lg font-bold transition-all duration-200 ${
+            selected !== null || customImage
+              ? "bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-purple-700 hover:to-blue-800 text-white shadow-lg"
+              : "bg-gray-500 text-gray-300 cursor-not-allowed"
+          }`}
+          onClick={handleNext}
+          disabled={selected === null && !customImage}
         >
-          <span className="text-3xl text-gray-400">+</span>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-          />
-        </div>
+          Next
+        </button>
       </div>
-
-      {/* Show selected image */}
-      {(selected !== null || customImage) && (
-        <div className="flex flex-col items-center mb-6">
-          <span className="text-white mb-2">Selected:</span>
-          <img
-            src={isCustom ? customImage : assistantImages[selected]}
-            alt="Selected Assistant"
-            className="w-32 h-32 rounded-full border-4 border-blue-400 shadow-lg"
-          />
-        </div>
-      )}
-
-      <button
-        className={`px-8 py-3 rounded-full text-lg font-semibold transition-all duration-200 ${
-          selected !== null || customImage
-            ? "bg-blue-500 hover:bg-blue-600 text-white shadow-lg"
-            : "bg-gray-400 text-gray-200 cursor-not-allowed"
-        }`}
-        onClick={handleNext}
-        disabled={selected === null && !customImage}
-      >
-        Next
-      </button>
     </div>
   );
 };

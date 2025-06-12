@@ -3,25 +3,18 @@ import React from "react";
 const AssistantCard = ({ image, selected, onClick, isCustom }) => (
   <div
     onClick={onClick}
-    className={`rounded-xl shadow-lg cursor-pointer transition-all duration-200 border-4 ${
-      selected ? "border-blue-500 scale-105" : "border-transparent hover:scale-105 hover:border-blue-300"
-    } bg-gradient-to-tr from-blue-900 via-purple-900 to-blue-700 p-1`}
+    className={`rounded-2xl cursor-pointer transition-all duration-200 border-4
+      ${selected ? "border-blue-400 scale-105 shadow-2xl" : "border-transparent hover:scale-105 hover:border-blue-300 shadow-lg"}
+      bg-[#232526]/80 backdrop-blur-md p-1
+    `}
+    style={{ minHeight: "170px", minWidth: "120px" }}
   >
-    {isCustom ? (
-      <img
-        src={image}
-        alt="Custom Assistant"
-        className="rounded-lg w-full h-40 object-cover"
-        draggable={false}
-      />
-    ) : (
-      <img
-        src={image}
-        alt="Assistant"
-        className="rounded-lg w-full h-40 object-cover"
-        draggable={false}
-      />
-    )}
+    <img
+      src={image}
+      alt={isCustom ? "Custom Assistant" : "Assistant"}
+      className="rounded-xl w-full h-40 object-cover select-none"
+      draggable={false}
+    />
   </div>
 );
 

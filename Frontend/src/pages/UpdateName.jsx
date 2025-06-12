@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 import { Navigate } from 'react-router';
-import { toast } from "react-hot-toast";
 import { ClipLoader } from "react-spinners";
 
 const UpdateName = () => {
@@ -15,22 +14,18 @@ const UpdateName = () => {
         e.preventDefault();
         try {
             const formData = new FormData();
-            // If the image is a data URL (custom image), upload it as a file
             if (state?.assistantImage?.startsWith("data:image")) {
                 const blob = await fetch(state.assistantImage).then((r) => r.blob());
                 formData.append("file", blob, "assistant.png");
             } else {
-                // For preloaded images, send the URL
                 formData.append("imageUrl", state?.assistantImage);
             }
             formData.append("assistantName", assistantName);
-
 
             const res = await updateAssistant(formData);
             if (res) {
                 setRedirect(true)
             }
-
         } catch (error) {
             setRedirect(false);
             console.error(error);
@@ -41,37 +36,41 @@ const UpdateName = () => {
         return <Navigate to="/" replace />;
     }
 
-
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#312e81] px-4">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">
-                Name your <span className="text-blue-400">Assistant</span>
-            </h1>
-            <div className="mb-6">
-                <img
-                    src={state?.assistantImage}
-                    alt="Assistant"
-                    className="w-32 h-32 rounded-full border-4 border-blue-400 shadow-lg"
-                />
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0f2027] via-[#2c5364] to-[#232526] px-4 py-8">
+            <div className="backdrop-blur-lg bg-[#232526]/80 border border-[#2c5364]/50 shadow-2xl rounded-2xl p-8 md:p-12 w-full max-w-md transition-all duration-300 flex flex-col items-center">
+                <h1 className="text-3xl md:text-4xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 drop-shadow-lg">
+                    Name your <span className="text-blue-400">Assistant</span>
+                </h1>
+                <div className="mb-8 flex justify-center">
+                    <img
+                        src={state?.assistantImage}
+                        alt="Assistant"
+                        className="w-32 h-32 rounded-full border-4 border-blue-400 shadow-lg object-cover"
+                    />
+                </div>
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex flex-col items-center w-full"
+                >
+                    <input
+                        type="text"
+                        value={assistantName}
+                        onChange={(e) => setAssistantName(e.target.value)}
+                        placeholder="Enter your assistant's name"
+                        className="w-full px-5 py-3 bg-[#1a1a2e]/80 text-gray-200 placeholder-gray-400 border border-[#393e46] rounded-xl
+                                   focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 mb-6"
+                        required
+                    />
+                    <button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-purple-700 hover:to-blue-800
+                                   text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center"
+                    >
+                        {isUpdatingProfile ? (<ClipLoader color="white" size={24} />) : ('Save')}
+                    </button>
+                </form>
             </div>
-            <form
-                onSubmit={handleSubmit}
-                className="flex flex-col items-center w-full max-w-md"
-            >
-                <input
-                    type="text"
-                    value={assistantName}
-                    onChange={(e) => setAssistantName(e.target.value)}
-                    placeholder="Enter your assistant's name"
-                    className="w-full px-4 py-3 text-white rounded-lg mb-4 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
-                />
-                <button
-                    type="submit"
-                    className="px-8 py-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-semibold shadow-lg transition-all duration-200"
-                > {isUpdatingProfile ? (<ClipLoader/>) : ('Save')}
-                </button>
-            </form>
         </div>
     );
 };

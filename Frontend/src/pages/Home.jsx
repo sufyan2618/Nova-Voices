@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../store/useAuthStore'
 import ai from '../assets/ai.gif'
-import user from  '../assets/user.gif'
+import user from '../assets/user.gif'
 
 const Home = () => {
   const { authUser, askAssistant, logout } = useAuthStore()
   const [userText, setuserText] = useState('')
   const [aiText, setaiText] = useState('')
+  const navigate = useNavigate()
 
   const isSpeakingRef = useRef(false)
   const recognitionRef = useRef(null)
@@ -18,9 +20,9 @@ const Home = () => {
     const response = await logout() 
     if(response){
       console.log('logged out')
-
     }
   }
+
   const speak = (text, callback) => {
     const speech = new SpeechSynthesisUtterance(text)
     speech.lang = 'en-US'
@@ -32,7 +34,6 @@ const Home = () => {
     }
     synth.speak(speech)
   }
-  
 
   const handleCommand = (data) => {
     const { type, userInput, result } = data
@@ -94,14 +95,13 @@ const Home = () => {
     
       if ((event.error === 'no-speech' || event.error === 'audio-capture') && !isSpeakingRef.current) {
         console.log('Retrying due to no speech...')
-        setTimeout(startRecognition, 1000) // retry after short delay
+        setTimeout(startRecognition, 1000)
       }
     
       if (event.error === 'abort' && !isSpeakingRef.current) {
         setTimeout(startRecognition, 1000)
       }
     }
-    
 
     recognition.onresult = async (event) => {
       const command = event.results[event.results.length - 1][0].transcript.trim()
@@ -153,7 +153,11 @@ const Home = () => {
       })
     }
   }
-  
+
+  const handleCustomizeAssistant = () => {
+    stopRecognition()
+    navigate('/assistant_select')
+  }
 
   useEffect(() => {
     initRecognition()
@@ -164,41 +168,116 @@ const Home = () => {
   }, [askAssistant, authUser.assistantName])
 
   return (
-    <div className='min-h-screen bg-gradient-to-tr from-cyan-500 to-blue-500 flex flex-col items-center justify-center p-4 font-sans text-white'>
-      <div className='bg-white bg-opacity-20 backdrop-blur-lg rounded-lg p-8 max-w-2xl w-full shadow-lg hover:scale-105 transition-transform duration-300'>
-        <h1 className='text-3xl text-black font-semibold mb-4 text-center'>Welcome, {authUser.name}!</h1>
-        <div className='flex flex-col md:flex-row items-center md:items-start'>
-          <img
-            src={authUser.assistantImage}
-            alt={`${authUser.assistantName} Image`}
-            className='w-48 h-48 object-cover rounded-full shadow-lg mb-4 md:mb-0 md:mr-6'
-          />
-          <div className='text-center md:text-left'>
-            <h2 className='text-xl text-black font-semibold mb-2'>Your Assistant: {authUser.assistantName}</h2>
-            <p className='mb-2 text-black'>Email: {authUser.email}</p>
+    <div className='min-h-screen bg-gradient-to-br from-[#0f2027] via-[#2c5364] to-[#232526] flex flex-col items-center justify-center p-4 relative overflow-hidden'>
+      {/* Background Animation */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 animate-pulse"></div>
+      
+      {/* Main Content */}
+      <div className='backdrop-blur-lg bg-[#232526]/80 border border-[#2c5364]/50 shadow-2xl rounded-2xl p-8 md:p-12 max-w-4xl w-full transition-all duration-300 relative z-10'>
+        <h1 className='text-3xl md:text-4xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 drop-shadow-lg'>
+          Welcome back, <span className="text-blue-400">{authUser.name}</span>!
+        </h1>
+        
+        <div className='flex flex-col lg:flex-row items-center lg:items-start gap-8'>
+          {/* Assistant Image */}
+          <div className="relative">
+            <img
+              src={authUser.assistantImage}
+              alt={`${authUser.assistantName} Image`}
+              className='w-48 h-48 object-cover rounded-full border-4 border-blue-400 shadow-2xl transition-all duration-300'
+            />
+            {isListening && (
+              <div className="absolute inset-0 rounded-full border-4 border-green-400 animate-ping"></div>
+            )}
           </div>
+          
+          {/* Assistant Info */}
+          <div className='text-center lg:text-left flex-1'>
+            <h2 className='text-2xl md:text-3xl font-bold mb-4 text-gray-200'>
+              Your Assistant: <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">{authUser.assistantName}</span>
+            </h2>
+            <div className="bg-[#1a1a2e]/80 rounded-xl p-4 mb-6">
+              <p className='text-gray-300 text-lg mb-2'>
+                <span className="text-blue-400 font-semibold">Email:</span> {authUser.email}
+              </p>
+              <p className='text-gray-300 text-lg'>
+                <span className="text-purple-400 font-semibold">Status:</span> 
+                <span className={`ml-2 px-3 py-1 rounded-full text-sm font-semibold ${
+                  isListening ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-200'
+                }`}>
+                  {isListening ? 'Listening...' : 'Ready'}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Control Buttons */}
+        <div className='flex flex-col sm:flex-row gap-4 justify-center mt-8'>
+          <button
+            onClick={toggleAssistant}
+            className={`px-8 py-3 rounded-xl font-bold text-white transition-all duration-200 shadow-lg ${
+              isListening 
+                ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800' 
+                : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800'
+            }`}
+          >
+            {isListening ? '🛑 Stop Listening' : '🎤 Start Assistant'}
+          </button>
+          
+          <button 
+            onClick={handleCustomizeAssistant}
+            className='px-8 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-purple-700 hover:to-blue-800 rounded-xl text-white font-bold transition-all duration-200 shadow-lg'
+          >
+            ⚙️ Customize Assistant
+          </button>
+          
+          <button 
+            className='px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 rounded-xl text-white font-bold transition-all duration-200 shadow-lg'
+            onClick={() => {
+              stopRecognition()
+              handleLogout()
+            }}
+          >
+            🚪 Logout
+          </button>
         </div>
       </div>
 
-      <div className='mt-6'>
-        <button
-          onClick={toggleAssistant}
-          className={`px-6 py-3 rounded text-white font-semibold transition ${
-            isListening ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
-          }`}
-        >
-          {isListening ? 'Stop' : 'Start'}
-        </button>
-        <button className='ml-4 px-6 py-3 bg-red-600 hover:bg-red-700 rounded text-white font-semibold transition'
-          onClick={() => {
-            stopRecognition()
-            handleLogout()
-          }} >
-          LogOut
-        </button>
+      {/* Activity Indicator */}
+      <div className='mt-8 flex flex-col items-center'>
+        {userText && (
+          <div className="bg-[#232526]/80 backdrop-blur-lg border border-blue-400/50 rounded-xl p-4 mb-4 max-w-2xl">
+            <p className="text-blue-400 font-semibold">You said:</p>
+            <p className="text-gray-200">{userText}</p>
+          </div>
+        )}
+        
+        {aiText && (
+          <div className="bg-[#232526]/80 backdrop-blur-lg border border-purple-400/50 rounded-xl p-4 mb-4 max-w-2xl">
+            <p className="text-purple-400 font-semibold">{authUser.assistantName} responded:</p>
+            <p className="text-gray-200">{aiText}</p>
+          </div>
+        )}
+
+        {/* Animated GIFs */}
+        <div className="relative">
+          {!aiText && (
+            <img 
+              src={user} 
+              alt='User' 
+              className='w-32 h-32 rounded-full border-4 border-blue-400/50 shadow-lg transition-all duration-300' 
+            />
+          )}
+          {aiText && (
+            <img 
+              src={ai} 
+              alt='AI' 
+              className='w-32 h-32 rounded-full border-4 border-purple-400/50 shadow-lg transition-all duration-300' 
+            />
+          )}
+        </div>
       </div>
-      {!aiText && <img src={user} alt='User' className='w-32 h-32 mt-6' />}
-      {aiText && <img src={ai} alt='AI' className='w-32 h-32 mt-6' />}
     </div>
   )
 }
