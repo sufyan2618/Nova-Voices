@@ -71,7 +71,6 @@ const useAuthStore = create((set, get) => ({
             const response = await axiosInstance.post("/auth/update-assistant", data)
             set({authUser: response.data})
             toast.success("Profile Updated Successfully");
-            console.log(response.data)
             return response.data
         } catch (error) {
             console.log(error)

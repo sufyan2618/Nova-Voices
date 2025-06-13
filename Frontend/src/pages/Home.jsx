@@ -61,10 +61,11 @@ const Home = () => {
         break
       case 'general':
         speak(result || 'No result provided.')
-        break
+        return
       default:
         console.log('Unknown command type.')
     }
+    speak(result || 'Here is what I found.')
   }
 
   const initRecognition = () => {
@@ -117,7 +118,6 @@ const Home = () => {
         handleCommand(data)
         setuserText('')
         setaiText(data.result || 'No response from assistant.')
-        speak(data.result)
       }
     }
 
