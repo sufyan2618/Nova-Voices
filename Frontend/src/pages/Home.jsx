@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../store/useAuthStore'
 import ai from '../assets/ai.gif'
 import user from '../assets/user.gif'
+import domtoimage from 'dom-to-image';
 
 const Home = () => {
   const { authUser, askAssistant, logout } = useAuthStore()
@@ -16,12 +17,20 @@ const Home = () => {
   const [isListening, setIsListening] = useState(false)
   const synth = window.speechSynthesis
 
-  const handleLogout = async() => {
-    const response = await logout() 
-    if(response){
+  const handleLogout = async () => {
+    const response = await logout()
+    if (response) {
       console.log('logged out')
     }
   }
+  const copyToClipboardFallback = (text) => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  };
 
   const speak = (text, callback) => {
     const speech = new SpeechSynthesisUtterance(text)
@@ -59,6 +68,56 @@ const Home = () => {
       case 'weather-show':
         window.open(`https://www.google.com/search?q=weather+${encodeURIComponent(userInput || '')}`, '_blank')
         break
+      case 'get_battery':
+        navigator.getBattery().then(battery => {
+          speak(`Battery is at ${Math.floor(battery.level * 100)} percent`);
+        });
+        break;
+      case 'screenshot':
+        domtoimage.toPng(document.body)
+          .then(dataUrl => {
+            const link = document.createElement('a');
+            link.download = 'screenshot.png';
+            link.href = dataUrl;
+            link.click();
+            speak('Screenshot taken');
+          })
+          .catch(error => {
+            console.error('Screenshot error:', error);
+            speak('Failed to take screenshot');
+          });
+        break;
+      
+        navigator.clipboard.writeText(userInput);
+        speak('Copied to clipboard');
+        break;
+        case 'copy_to_clipboard':
+          // Focus the document first
+          window.focus();
+          
+          // Add slight delay to ensure focus is established
+          setTimeout(async () => {
+            try {
+              await navigator.clipboard.writeText(userInput);
+              speak('Copied to clipboard');
+            } catch (error) {
+              console.error('Copy failed:', error);
+              // Fallback method
+              copyToClipboardFallback(userInput);
+              speak('Copied to clipboard');
+            }
+          }, 100);
+          break;
+        
+      case 'get_location':
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(position => {
+            speak(`Your approximate location is latitude ${position.coords.latitude}, longitude ${position.coords.longitude}`);
+          });
+        } else {
+          speak("Geolocation is not supported");
+        }
+        break;
       case 'general':
         speak(result || 'No result provided.')
         return
@@ -93,12 +152,12 @@ const Home = () => {
       console.warn('Speech recognition error:', event.error)
       isRecognizingRef.current = false
       setIsListening(false)
-    
-      if ((event.error === 'no-speech' || event.error === 'audio-capture') && !isSpeakingRef.current) {
+
+      if ((event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'network') && !isSpeakingRef.current) {
         console.log('Retrying due to no speech...')
         setTimeout(startRecognition, 1000)
       }
-    
+
       if (event.error === 'abort' && !isSpeakingRef.current) {
         setTimeout(startRecognition, 1000)
       }
@@ -171,13 +230,13 @@ const Home = () => {
     <div className='min-h-screen bg-gradient-to-br from-[#0f2027] via-[#2c5364] to-[#232526] flex flex-col items-center justify-center p-4 relative overflow-hidden'>
       {/* Background Animation */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 animate-pulse"></div>
-      
+
       {/* Main Content */}
       <div className='backdrop-blur-lg bg-[#232526]/80 border border-[#2c5364]/50 shadow-2xl rounded-2xl p-8 md:p-12 max-w-4xl w-full transition-all duration-300 relative z-10'>
         <h1 className='text-3xl md:text-4xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 drop-shadow-lg'>
           Welcome back, <span className="text-blue-400">{authUser.name}</span>!
         </h1>
-        
+
         <div className='flex flex-col lg:flex-row items-center lg:items-start gap-8'>
           {/* Assistant Image */}
           <div className="relative">
@@ -190,7 +249,7 @@ const Home = () => {
               <div className="absolute inset-0 rounded-full border-4 border-green-400 animate-ping"></div>
             )}
           </div>
-          
+
           {/* Assistant Info */}
           <div className='text-center lg:text-left flex-1'>
             <h2 className='text-2xl md:text-3xl font-bold mb-4 text-gray-200'>
@@ -201,10 +260,9 @@ const Home = () => {
                 <span className="text-blue-400 font-semibold">Email:</span> {authUser.email}
               </p>
               <p className='text-gray-300 text-lg'>
-                <span className="text-purple-400 font-semibold">Status:</span> 
-                <span className={`ml-2 px-3 py-1 rounded-full text-sm font-semibold ${
-                  isListening ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-200'
-                }`}>
+                <span className="text-purple-400 font-semibold">Status:</span>
+                <span className={`ml-2 px-3 py-1 rounded-full text-sm font-semibold ${isListening ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-200'
+                  }`}>
                   {isListening ? 'Listening...' : 'Ready'}
                 </span>
               </p>
@@ -216,23 +274,22 @@ const Home = () => {
         <div className='flex flex-col sm:flex-row gap-4 justify-center mt-8'>
           <button
             onClick={toggleAssistant}
-            className={`px-8 py-3 rounded-xl font-bold text-white transition-all duration-200 shadow-lg ${
-              isListening 
-                ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800' 
-                : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800'
-            }`}
+            className={`px-8 py-3 rounded-xl font-bold text-white transition-all duration-200 shadow-lg ${isListening
+              ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'
+              : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800'
+              }`}
           >
             {isListening ? '🛑 Stop Listening' : '🎤 Start Assistant'}
           </button>
-          
-          <button 
+
+          <button
             onClick={handleCustomizeAssistant}
             className='px-8 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-purple-700 hover:to-blue-800 rounded-xl text-white font-bold transition-all duration-200 shadow-lg'
           >
             ⚙️ Customize Assistant
           </button>
-          
-          <button 
+
+          <button
             className='px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 rounded-xl text-white font-bold transition-all duration-200 shadow-lg'
             onClick={() => {
               stopRecognition()
@@ -252,7 +309,7 @@ const Home = () => {
             <p className="text-gray-200">{userText}</p>
           </div>
         )}
-        
+
         {aiText && (
           <div className="bg-[#232526]/80 backdrop-blur-lg border border-purple-400/50 rounded-xl p-4 mb-4 max-w-2xl">
             <p className="text-purple-400 font-semibold">{authUser.assistantName} responded:</p>
@@ -263,17 +320,17 @@ const Home = () => {
         {/* Animated GIFs */}
         <div className="relative">
           {!aiText && (
-            <img 
-              src={user} 
-              alt='User' 
-              className='w-32 h-32 rounded-full border-4 border-blue-400/50 shadow-lg transition-all duration-300' 
+            <img
+              src={user}
+              alt='User'
+              className='w-32 h-32 rounded-full border-4 border-blue-400/50 shadow-lg transition-all duration-300'
             />
           )}
           {aiText && (
-            <img 
-              src={ai} 
-              alt='AI' 
-              className='w-32 h-32 rounded-full border-4 border-purple-400/50 shadow-lg transition-all duration-300' 
+            <img
+              src={ai}
+              alt='AI'
+              className='w-32 h-32 rounded-full border-4 border-purple-400/50 shadow-lg transition-all duration-300'
             />
           )}
         </div>

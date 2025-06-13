@@ -176,6 +176,10 @@ export const askAssistant = async (req, res) => {
             case 'general':
             case 'google_search':
             case 'youtube_search':
+            case 'get_battery':
+            case 'get_location':
+            case 'screenshot':
+            case 'copy_to_clipboard':
             case 'calculator_open':
             case 'instagram_open':
             case 'facebook_open':
