@@ -68,6 +68,7 @@ const Home = () => {
       case 'weather-show':
         window.open(`https://www.google.com/search?q=weather+${encodeURIComponent(userInput || '')}`, '_blank')
         break
+      
       case 'get_battery':
         navigator.getBattery().then(battery => {
           speak(`Battery is at ${Math.floor(battery.level * 100)} percent`);
