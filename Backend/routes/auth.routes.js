@@ -15,3 +15,4 @@ authRouter.post('/update-assistant', auth ,upload.single('file'), Update_Assista
 authRouter.post('/askassistant' , auth, askAssistant)
 
 export default authRouter;
+s
