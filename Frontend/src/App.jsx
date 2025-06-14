@@ -1,7 +1,7 @@
 import { React, useEffect } from 'react'
 import { Route, Routes, Navigate } from 'react-router'
 import Signup from './pages/signup'
-import Signin from './pages/Signin'
+import Signin from './pages/signin'
 import AssistantSelect from './pages/AssistantSelect'
 import UpdateName from './pages/UpdateName'
 import useAuthStore from './store/useAuthStore'
