@@ -26,14 +26,12 @@ app.get("/", (req, res) => {
 
 const __dirname = path.resolve();
 if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "./Frontend/dist")));
-    // safer wildcard catch-all
+    // Navigate up from backend directory to project root, then to Frontend/dist
+    app.use(express.static(path.join(__dirname, "../Frontend/dist")));
+    
     app.get("{*catchall}", (req, res) => {
-        res.sendFile(path.resolve(__dirname, "Frontend", "dist", "index.html"));
+        res.sendFile(path.resolve(__dirname, "../Frontend/dist/index.html"));
     });
-    
-    
-
 }
 
 const port = process.env.PORT || 3000;
