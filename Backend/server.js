@@ -19,10 +19,6 @@ app.use(cors({
 
 app.use("/api/auth", authRouter);
 
-app.get("/", (req, res) => {
-    res.send("Hello World");
-})
-
 
 const __dirname = path.resolve();
 if (process.env.NODE_ENV === "production") {
