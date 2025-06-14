@@ -19,21 +19,23 @@ app.use(cors({
 
 app.use("/api/auth", authRouter);
 
-app.get("/", (req, res) =>{
+app.get("/", (req, res) => {
     res.send("Hello World");
 })
 
 
 const __dirname = path.resolve();
-if( process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname, "./Frontend/dist")));
-    app.get("*", (req, res) => {
+    // safer wildcard catch-all
+    app.get("/*", (req, res) => {
         res.sendFile(path.resolve(__dirname, "Frontend", "dist", "index.html"));
     });
+
 }
 
 const port = process.env.PORT || 3000;
-app.listen(port,() =>{
+app.listen(port, () => {
     connectDb();
     console.log(`Server is running on http://localhost:${port}`);
 })
